@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-
+const compression = require('compression');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
@@ -11,7 +11,7 @@ if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
 // Parse JSON bodies up to 50MB (base64 images can be large)
 app.use(express.json({ limit: '50mb' }));
-
+app.use(compression());
 // --- Helper: read/write JSON data ---
 function getDataPath(key) {
   const safe = key.replace(/[^a-zA-Z0-9_-]/g, '_');
