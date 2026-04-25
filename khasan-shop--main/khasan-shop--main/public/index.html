@@ -687,6 +687,10 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 }
 
 /* === INTRO SCREEN (simonprod-style) === */
+function finishInit() {
+  init();
+  dismissIntro();
+}
 .intro-screen {
   position: fixed;
   inset: 0;
@@ -906,7 +910,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
     <a href="#" id="footerTgLink" title="Telegram"><svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"></path></svg></a>
   </div>
   <div class="footer-bottom">
-    <a id="footerDesigner" href="#" target="_blank" style="color:inherit;text-decoration:none">Дизайнер Klimentii</a>
+    <a id="footerDesigner" href="#" target="_blank" style="color:rgba(255,255,255,0.85);text-decoration:none">Дизайнер Klimentii</a>
   </div>
 </footer>
 
@@ -1413,7 +1417,7 @@ async function _loadServerData() {
     // Admin device with local data — do full sync (they have fast connection)
     var serverData = {};
     try {
-      const res = await fetch('/api/data');
+      const res = await fetch('/api/products-lite')
       if (!res.ok) throw new Error('Server returned ' + res.status);
       serverData = await res.json();
     } catch(e) {
@@ -2151,7 +2155,7 @@ function initProfile() {
       document.getElementById('profileAvatar').innerHTML = '<img src="' + tgUser.photo_url + '">';
     }
   }
-  const userdata = JSON.parse(localStorage.getItem(LS.user) || '{}');
+  
   if (userdata.since) {
     document.getElementById('profileSince').textContent = 'В магазине с ' + formatDate(userdata.since);
   } else {
@@ -2367,19 +2371,26 @@ function adminAuth() {
   }
 }
 function switchAdminTab(idx) {
-  document.querySelectorAll('.admin-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.admin-section').forEach((s, i) => s.classList.toggle('active', i === idx));
-  if (idx === 0) renderAdminProducts();
-  if (idx === 1) loadAdminSettings();
-  if (idx === 2) renderAdminCategories();
+  document.querySelectorAll('.admin-tab').forEach((t, i) =>
+    t.classList.toggle('active', i === idx)
+  );
+
+  document.querySelectorAll('.admin-section').forEach((s, i) =>
+    s.classList.toggle('active', i === idx)
+  );
+
+  const actions = [
+    renderAdminProducts,
+    loadAdminSettings,
+    renderAdminCategories
+  ];
+
+  if (actions[idx]) actions[idx]();
 }
 function refreshAdmin() {
-  renderAdminProducts();
-  renderAdminOrders();
-  renderAdminCategories();
+  scheduleRender(); 
   loadAdminSettings();
 }
-
 /* Admin Products */
 function renderAdminProducts() {
   const list = document.getElementById('adminProductList');
@@ -2426,8 +2437,7 @@ function toggleNewBadge(id) {
     p.newSetAt = Date.now();
   }
   localStorage.setItem(LS.products, JSON.stringify(products));
-  renderAdminProducts();
-  renderProducts();
+scheduleRender();
 }
 
 /* Helper: get images array from product (backward compat with old single img) */
@@ -2582,10 +2592,14 @@ function saveProduct() {
   cancelProductForm();
   // Always sync to server first (no localStorage limit)
   var productData = JSON.stringify(products);
-  _syncToServer(LS.products, productData).then(function() {
-    showToast('Сохранено на сервер!');
-  }).catch(function() {
-    showToast('Ошибка сохранения на сервер');
+  _syncToServer(LS.products, productData)
+  .catch(function() {
+    try {
+      localStorage.setItem(LS.products, productData);
+    } catch(e) {}
+  })
+  .finally(function() {
+    showToast('Сохранено');
   });
   // Try localStorage but don't fail if full
   try {
@@ -2594,10 +2608,7 @@ function saveProduct() {
     console.warn('[save] localStorage full, server sync used instead');
   }
   showToast('Сохранено!');
-  requestAnimationFrame(function() {
-    renderAdminProducts();
-    requestAnimationFrame(function() {
-      renderProducts();
+  scheduleRender();
     });
   });
 }
@@ -2626,11 +2637,7 @@ function deleteProduct(id) {
     var productData = JSON.stringify(products);
     _syncToServer(LS.products, productData).catch(function() {});
     try { localStorage.setItem(LS.products, productData); } catch(e) {}
-    requestAnimationFrame(function() {
-      renderAdminProducts();
-      requestAnimationFrame(function() {
-        renderProducts();
-        updateFavBadge();
+   scheduleRender();
       });
     });
   };
@@ -2708,8 +2715,7 @@ function triggerCatImgUpload(idx) {
     reader.onload = function(ev) {
       categories[idx].img = ev.target.result;
       localStorage.setItem(LS.categories, JSON.stringify(categories));
-      renderAdminCategories();
-      renderCategories();
+      scheduleRender();
     };
     reader.readAsDataURL(file);
   };
@@ -2723,8 +2729,7 @@ function addCategory() {
   categories.push({ id, name, icon: 'acc' });
   localStorage.setItem(LS.categories, JSON.stringify(categories));
   document.getElementById('newCatName').value = '';
-  renderAdminCategories();
-  renderCategories();
+  scheduleRender();
 }
 
 function renameCat(idx, name) {
@@ -2737,7 +2742,6 @@ function deleteCat(idx) {
   if (!confirm('Удалить категорию?')) return;
   categories.splice(idx, 1);
   localStorage.setItem(LS.categories, JSON.stringify(categories));
-  renderAdminCategories();
   renderCategories();
 }
 
@@ -2765,7 +2769,7 @@ function loadAdminSettings() {
   if (settings.heroImg) {
     var hu = document.getElementById('heroUpload');
     hu.innerHTML = '<img src="' + settings.heroImg + '"><input type="file" id="heroImgInput" accept="image/*" onchange="uploadHeroImg(event)">';
-    hu.onclick = function() { document.getElementById('heroImgInput').click(); };
+    
   }
 
   /* Load hero layout settings */
@@ -2937,7 +2941,24 @@ function showToast(msg) {
   requestAnimationFrame(function() { t.style.opacity = '1'; });
   setTimeout(function() { t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 300); }, 2000);
 }
+let renderScheduled = false;
 
+function scheduleRender() {
+  if (renderScheduled) return;
+  renderScheduled = true;
+
+  requestAnimationFrame(() => {
+    renderScheduled = false;
+
+    renderProducts();
+    renderCategories();
+    updateFavBadge();
+
+    if (adminLoggedIn) {
+      scheduleRender();
+    }
+  });
+}
 /* === EVENT BINDINGS === */
 (function bindEvents() {
   /* Header pills (Новинки / Товары / Скидки) */
@@ -2959,7 +2980,10 @@ function showToast(msg) {
   if (headerRightLinks[0]) headerRightLinks[0].addEventListener('click', openSupport);  // Поддержка
 
   /* Search input */
-  document.getElementById('searchInput').addEventListener('input', filterProducts);
+  var searchInput = document.getElementById('searchInput');
+if (searchInput) {  
+  searchInput.addEventListener('input', scheduleRender);
+}
 
   /* Sort button */
   document.getElementById('sortBtn').addEventListener('click', toggleSort);
@@ -3091,8 +3115,8 @@ function showToast(msg) {
   if (colabAddBtn) colabAddBtn.addEventListener('click', addColabLink);
 
   /* Admin Categories: Add category */
-  var catAddBtn = document.querySelector('#adminCategories .admin-btn.primary');
-  if (catAddBtn) catAddBtn.addEventListener('click', addCategory);
+  var catAddBtn = document.querySelector('#adminCategories .admin-btn.primary:last-child');
+if (catAddBtn) catAddBtn.addEventListener('click', addCategory);
 
   /* Admin Telegram: Save & Test */
   var tgBtns = document.querySelectorAll('#adminTelegram .admin-btn');
@@ -3116,7 +3140,7 @@ function showToast(msg) {
   // Trigger scale+blur animation immediately
   requestAnimationFrame(function() {
     requestAnimationFrame(function() {
-      introWrap.classList.add('ready');
+      if (introWrap) introWrap.classList.add('ready');
     });
   });
 
@@ -3149,18 +3173,37 @@ function showToast(msg) {
 
   // Safety timeout - dismiss intro after 10s max
   var _introTimeout = setTimeout(function() {
-    init();
-    dismissIntro();
-  }, 10000);
+  finishInit();
+}, 10000);
 
   // Load data then dismiss intro
   _loadServerData().then(function() {
-    clearTimeout(_introTimeout);
-    init();
-    dismissIntro();
-  });
-})();
+  clearTimeout(_introTimeout);
+  finishInit();
+}).catch(function() {
+  clearTimeout(_introTimeout);
+  finishInit();
+});
+let renderScheduled = false;
 
+function scheduleRender() {
+  if (renderScheduled) return;
+  renderScheduled = true;
+
+  requestAnimationFrame(() => {
+    renderScheduled = false;
+
+    renderProducts();
+    renderCategories();
+    updateFavBadge();
+
+    if (adminLoggedIn) {
+      renderAdminProducts();
+      renderAdminOrders();
+      renderAdminCategories();
+    }
+  });
+}
 
   </script>
 </body>
