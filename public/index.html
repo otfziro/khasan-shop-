@@ -1479,8 +1479,12 @@ async function _loadServerData() {
         try { cachedProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products_cache')); } catch(e) {}
         if (cachedProducts && cachedProducts.length > 0) {
           products = cachedProducts;
-          try { settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; } catch(e) {}
-          try { categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; } catch(e) {}
+          try { 
+  settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; 
+} catch(e) {}
+          try { 
+  categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; 
+} catch(e) {}
           console.log('[sync] using cached data (' + products.length + ' products)');
         }
       }
@@ -1491,8 +1495,12 @@ async function _loadServerData() {
         var cachedProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products_cache'));
         if (cachedProducts && cachedProducts.length > 0) {
           products = cachedProducts;
-          try { settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; } catch(ex) {}
-          try { categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; } catch(ex) {}
+          try { 
+  settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; 
+} catch(e) {}
+          try { 
+  categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; 
+} catch(e) {}
           console.log('[sync] offline — using cached data (' + products.length + ' products)');
         }
       } catch(ex) {}
