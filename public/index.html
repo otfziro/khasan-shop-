@@ -723,7 +723,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
   100% { opacity: 1;   transform: scale(1);    filter: blur(0); }
 }
 
-/* Brand text — large ХАСАН */
+/* Brand text — large КОМПРЕССОРНЫЙ ПАССАЖ */
 .intro-brand {
   font-family: 'Oswald', sans-serif;
   font-size: clamp(72px, 22vw, 220px);
@@ -739,7 +739,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 
 /* Shimmer sweep across the text */
 .intro-brand::after {
-  content: 'ХАСАН';
+  content: 'КОМПРЕССОРНЫЙ ПАССАЖ';
   position: absolute;
   inset: 0;
   background: linear-gradient(
@@ -816,7 +816,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 <!-- INTRO SCREEN -->
 <div class="intro-screen" id="introScreen">
   <div class="intro-wrap" id="introWrap">
-    <div class="intro-brand" id="introBrand">ХАСАН</div>
+    <div class="intro-brand" id="introBrand">КОМПРЕССОРНЫЙ ПАССАЖ</div>
     <div class="intro-sub" id="introSub">S H O P</div>
   </div>
   <div class="intro-loader">
@@ -851,7 +851,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 </header>
 
 <!-- HERO BANNER -->
-<section class="hero" id="heroBanner" style="aspect-ratio: unset; height: 303px;"><img src="" alt="ХАСАН" style="width:100%;height:100%;object-fit:cover;object-position:50% 0%;display:block"></section>
+<section class="hero" id="heroBanner" style="aspect-ratio: unset; height: 303px;"><img src="" alt="КОМПРЕССОРНЫЙ ПАССАЖ" style="width:100%;height:100%;object-fit:cover;object-position:50% 0%;display:block"></section>
 
 <!-- CATEGORIES -->
 <section class="categories" id="categoriesSection">
@@ -885,7 +885,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
 
 <!-- FOOTER -->
 <footer class="footer" id="footerSection">
-  <div class="footer-logo">ХАСАН</div>
+  <div class="footer-logo">КОМПРЕССОРНЫЙ ПАССАЖ</div>
   <div class="footer-grid">
     <div class="footer-col" id="footerColInfo"><h4>Ип/ооо</h4><p>Фамилия Имя Отчество</p><h4 style="margin-top:20px">ИНН/КПП</h4><p>818357849456/123456789</p><h4 style="margin-top:20px">Юр.Адрес:</h4><p>г.Санкт-Петербург, ул.Маяковского дом 1</p></div>
     <div class="footer-col" id="footerColCatalog">
@@ -897,7 +897,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
       <div id="footerColabLinks"><a href="#" style="cursor:pointer">Продакшен</a><a href="#" style="cursor:pointer">Digital</a><a href="#" style="cursor:pointer">Маркетинг</a></div>
     </div>
     <div class="footer-col" style="display:flex;flex-direction:column;align-items:flex-start;">
-      <div class="footer-brand-big" id="footerBrandName">Хасан.Shop 2026</div>
+      <div class="footer-brand-big" id="footerBrandName">КОМПРЕССОРНЫЙ ПАССАЖ.Shop</div>
     </div>
   </div>
   <div class="footer-socials" id="footerSocials">
@@ -1044,7 +1044,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
     <h2>О нас</h2>
   </div>
   <div class="about-content" id="aboutContent">
-    <h2>ХАСАН</h2>
+    <h2>КОМПРЕССОРНЫЙ ПАССАЖ</h2>
     <p>Магазин стильной одежды и аксессуаров. Мы собираем лучшие вещи от мировых брендов для тех, кто ценит качество и стиль.</p>
     <p>Настройте этот раздел через админ-панель.</p>
   </div>
@@ -1200,7 +1200,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         <h3 style="font-size:15px;margin-bottom:14px;display:none">О нас (страница)</h3>
         <div class="admin-form-group" style="display:none">
           <label>Заголовок</label>
-          <input type="text" id="aboutTitle" placeholder="ХАСАН">
+          <input type="text" id="aboutTitle" placeholder="КОМПРЕССОРНЫЙ ПАССАЖ">
         </div>
         <div class="admin-form-group" style="display:none">
           <label>Текст (HTML разрешён)</label>
@@ -1222,7 +1222,7 @@ input, textarea, select { font-family: inherit; font-size: inherit; }
         <h3 style="font-size:15px;margin-bottom:14px">Подвал сайта</h3>
         <div class="admin-form-group">
           <label>Название бренда (большой текст справа)</label>
-          <input type="text" id="footerEntityInput" placeholder="Хасан.Shop 2026">
+          <input type="text" id="footerEntityInput" placeholder="КОМПРЕССОРНЫЙ ПАССАЖ.Shop">
         </div>
         <div class="admin-form-group">
           <label>Дизайнер</label>
@@ -1513,7 +1513,7 @@ async function _loadServerData() {
 }
 
 /* =============================================
-   ХАСАН SHOP — Telegram Mini App
+   КОМПРЕССОРНЫЙ ПАССАЖ — Telegram Mini App
    Shared data synced via server
    ============================================= */
 
@@ -1613,9 +1613,9 @@ function renderHero() {
   hero.style.height = h + 'px';
 
   if (heroImg) {
-    hero.innerHTML = '<img src="' + heroImg + '" alt="ХАСАН" style="width:100%;height:100%;object-fit:' + fit + ';object-position:' + posX + '% ' + posY + '%;display:block">';
+    hero.innerHTML = '<img src="' + heroImg + '" alt="КОМПРЕССОРНЫЙ ПАССАЖ" style="width:100%;height:100%;object-fit:' + fit + ';object-position:' + posX + '% ' + posY + '%;display:block">';
   } else {
-    hero.innerHTML = '<img src="hero-bg.jpg" alt="ХАСАН" style="width:100%;height:100%;object-fit:' + fit + ';object-position:' + posX + '% ' + posY + '%;display:block" onerror="this.parentElement.innerHTML=\'<div class=hero-placeholder>ХАСАН</div>\'">';
+    hero.innerHTML = '<img src="hero-bg.jpg" alt="КОМПРЕССОРНЫЙ ПАССАЖ" style="width:100%;height:100%;object-fit:' + fit + ';object-position:' + posX + '% ' + posY + '%;display:block" onerror="this.parentElement.innerHTML=\'<div class=hero-placeholder>ХАСАН</div>\'">';
   }
 }
 
@@ -2231,7 +2231,7 @@ function loadAbout() {
   }
   if (settings.aboutText) {
     const el = document.querySelector('#aboutContent');
-    el.innerHTML = '<h2>' + esc(settings.aboutTitle || 'ХАСАН') + '</h2>' + settings.aboutText;
+    el.innerHTML = '<h2>' + esc(settings.aboutTitle || 'КОМПРЕССОРНЫЙ ПАССАЖ') + '</h2>' + settings.aboutText;
   }
 }
 
@@ -2273,7 +2273,7 @@ function renderFooter() {
   ).join('');
 
   /* Brand name */
-  const brandName = settings.footerEntity || 'Хасан.Shop 2026';
+  const brandName = settings.footerEntity || 'КОМПРЕССОРНЫЙ ПАССАЖ.Shop';
   document.getElementById('footerBrandName').textContent = brandName;
 
   /* Socials */
@@ -2870,7 +2870,7 @@ function testTelegram() {
   fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text: '✅ Тестовое сообщение от ХАСАН Shop' })
+    body: JSON.stringify({ chat_id: chatId, text: '✅ Тестовое сообщение от КОМПРЕССОРНЫЙ ПАССАЖ Shop' })
   }).then(r => r.json()).then(d => {
     showToast(d.ok ? 'Сообщение отправлено!' : 'Ошибка: ' + (d.description || 'unknown'));
   }).catch(() => showToast('Ошибка сети'));
