@@ -10,6 +10,9 @@ const DB_NAME = 'khasan_shop';
 
 let db;
 
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
+
+
 // Connect to MongoDB
 async function connectDB() {
   const client = new MongoClient(MONGO_URI);
