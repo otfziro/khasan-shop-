@@ -1408,106 +1408,65 @@ window.addEventListener('beforeunload', function(e) {
 // Load shared data from server into localStorage before app starts
 // Smart sync: compares local vs server data and keeps the freshest version
 async function _loadServerData() {
-  // Check if we already have local product data (admin device)
-  var localProducts = null;
-  try { localProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products')); } catch(e) {}
-  var hasLocalProducts = localProducts && Array.isArray(localProducts) && localProducts.length > 0;
+  try {
+    // Load products and settings from lightweight endpoints (no base64 images)
+    var resProducts = await fetch('/api/products-lite');
+    var resSettings = await fetch('/api/settings-lite');
+    var resCategories = await fetch('/api/data/kh_categories');
+    var resOrders = await fetch('/api/data/kh_orders');
 
-  if (hasLocalProducts) {
-    // Admin device with local data — do full sync (they have fast connection)
-    var serverData = {};
-    try {
-      const res = await fetch('/api/products-lite')
-      if (!res.ok) throw new Error('Server returned ' + res.status);
-      serverData = await res.json();
-    } catch(e) {
-      console.warn('Server sync unavailable, using local data:', e.message);
-    }
+    var serverProducts = resProducts.ok ? await resProducts.json() : [];
+    var serverSettings = resSettings.ok ? await resSettings.json() : {};
+    var serverCategories = resCategories.ok ? await resCategories.json() : null;
+    var serverOrders = resOrders.ok ? await resOrders.json() : [];
 
-    for (const key of SHARED_KEYS) {
-      var serverVal = serverData[key];
-      var localRaw = _origGetItem.call(localStorage, key);
-      var localVal = null;
-      try { localVal = localRaw ? JSON.parse(localRaw) : null; } catch(e) {}
-
-      var serverVersion = (serverData['_v_' + key]) || 0;
-      var localVersion = 0;
-      try { localVersion = parseInt(_origGetItem.call(localStorage, '_v_' + key)) || 0; } catch(e) {}
-
-      if (localVersion > serverVersion && localVal !== null) {
-        console.log('[sync] local is newer for ' + key + ' (v' + localVersion + ' > v' + serverVersion + '), pushing to server');
-        try {
-          _syncToServer(key, JSON.stringify(localVal));
-          fetch('/api/data/_v_' + key, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ value: localVersion })
-          });
-        } catch(e) { console.warn('[sync] failed to restore ' + key + ':', e.message); }
-      } else if (serverVal !== undefined && serverVal !== null) {
-        _origSetItem.call(localStorage, key, JSON.stringify(serverVal));
-        if (serverVersion) {
-          try { _origSetItem.call(localStorage, '_v_' + key, String(serverVersion)); } catch(e) {}
-        }
-      }
-    }
-
-    _serverSyncReady = true;
-  
-      var serverProducts = results[0] || [];
-      var serverSettings = results[1] || {};
-      var serverCategories = results[2];
-      var serverOrders = results[3] || [];
-      var serverVersion = results[4] || 0;
-
-      if (serverProducts.length > 0) {
-        products = serverProducts;
-        settings = serverSettings;
-        categories = serverCategories || [...DEFAULT_CATS];
-        orders = serverOrders;
-        // Cache lightweight data in localStorage for next visit (~2KB, no base64)
-        try {
-          _origSetItem.call(localStorage, 'kh_products_cache', JSON.stringify(products));
-          _origSetItem.call(localStorage, 'kh_settings_cache', JSON.stringify(settings));
-          _origSetItem.call(localStorage, 'kh_categories_cache', JSON.stringify(categories));
-          if (serverVersion) _origSetItem.call(localStorage, '_v_cache', String(serverVersion));
-        } catch(e) {}
-        console.log('[sync] loaded ' + products.length + ' products (lightweight mode)');
-      } else {
-        // Server empty — try cached data from previous visit
-        var cachedProducts = null;
-        try { cachedProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products_cache')); } catch(e) {}
-        if (cachedProducts && cachedProducts.length > 0) {
-          products = cachedProducts;
-          try { 
-  settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; 
-} catch(e) {}
-          try { 
-  categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; 
-} catch(e) {}
-          console.log('[sync] using cached data (' + products.length + ' products)');
-        }
-      }
-    } catch(e) {
-      // Network error — try cached data
-      console.warn('Server sync unavailable:', e.message);
+    if (serverProducts && serverProducts.length > 0) {
+      products = serverProducts;
+      settings = serverSettings || {};
+      categories = serverCategories || [...DEFAULT_CATS];
+      orders = serverOrders || [];
+      // Cache for offline use
       try {
-        var cachedProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products_cache'));
-        if (cachedProducts && cachedProducts.length > 0) {
-          products = cachedProducts;
-          try { 
-  settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; 
-} catch(e) {}
-          try { 
-  categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; 
-} catch(e) {}
-          console.log('[sync] offline — using cached data (' + products.length + ' products)');
-        }
-      } catch(ex) {}
+        _origSetItem.call(localStorage, 'kh_products_cache', JSON.stringify(products));
+        _origSetItem.call(localStorage, 'kh_settings_cache', JSON.stringify(settings));
+        _origSetItem.call(localStorage, 'kh_categories_cache', JSON.stringify(categories));
+      } catch(e) {}
+      console.log('[sync] loaded ' + products.length + ' products from server');
+    } else {
+      // Server empty — try local cache
+      _loadFromCache();
     }
 
-    _serverSyncReady = true;
+    // Push local admin data to server if newer
+    for (var key of SHARED_KEYS) {
+      var localRaw = _origGetItem.call(localStorage, key);
+      if (!localRaw) continue;
+      var localVal = null;
+      try { localVal = JSON.parse(localRaw); } catch(e) { continue; }
+      var localVersion = parseInt(_origGetItem.call(localStorage, '_v_' + key)) || 0;
+      if (localVersion > 0 && localVal !== null) {
+        try { _syncToServer(key, localRaw); } catch(e) {}
+      }
+    }
+
+  } catch(e) {
+    console.warn('Server sync unavailable:', e.message);
+    _loadFromCache();
   }
+
+  _serverSyncReady = true;
+}
+
+function _loadFromCache() {
+  try {
+    var cachedProducts = JSON.parse(_origGetItem.call(localStorage, 'kh_products_cache'));
+    if (cachedProducts && cachedProducts.length > 0) {
+      products = cachedProducts;
+      try { settings = JSON.parse(_origGetItem.call(localStorage, 'kh_settings_cache')) || {}; } catch(e) {}
+      try { categories = JSON.parse(_origGetItem.call(localStorage, 'kh_categories_cache')) || [...DEFAULT_CATS]; } catch(e) {}
+      console.log('[sync] using cached data (' + products.length + ' products)');
+    }
+  } catch(e) {}
 }
 
 /* =============================================
